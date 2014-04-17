@@ -14,4 +14,23 @@ class Numbers
     return finalSet.to_a.reduce(:+)
   end
 
+  def self.fibonacciByRounding(number)
+
+    phi = ((1 + Math.sqrt(5))/2)
+
+    if number > 2
+
+      return (((phi**number)/Math.sqrt(5))).round()
+    end
+
+    if number == 1
+      return 1
+    end
+
+    if number == 2
+      return 1
+    end
+  end
+
+
 end
