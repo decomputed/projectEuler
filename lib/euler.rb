@@ -4,17 +4,17 @@ require 'set'
 class Numbers
 
   def self.sum_until(limit, steps)
-    finalSet = Set.new
+    final_set = Set.new
 
     steps.each{
       |step|
-      finalSet.merge((step..(limit-1)).step(step))
+      final_set.merge((step..(limit-1)).step(step))
     }
 
-    return finalSet.to_a.reduce(:+)
+    return final_set.to_a.reduce(:+)
   end
 
-  def self.fibonacciByRounding(number)
+  def self.fibonacci_by_rounding(number)
 
     phi = ((1 + Math.sqrt(5))/2)
 
@@ -31,6 +31,8 @@ class Numbers
       return 1
     end
   end
+
+
 
 
 end
