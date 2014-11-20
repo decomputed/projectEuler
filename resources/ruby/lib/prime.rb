@@ -23,4 +23,22 @@ class Prime
   def reset
     @last_prime = 2
   end
+
+  def self.get_factors_for(n)
+    primito = Prime.new
+    factors = []
+
+    loop do
+      break if n == 1
+      if n % primito.last_prime == 0
+
+        n /= primito.last_prime
+        factors.push(primito.last_prime)
+      else
+        primito.next_prime
+      end
+    end
+
+    factors
+  end
 end

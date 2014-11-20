@@ -96,4 +96,8 @@ class Problem001 < Test::Unit::TestCase
 
   end
 
+  def test_problem4
+    assert_equal(Prime.get_factors_for(600851475143), [71, 839, 1471, 6857])
+  end
+
 end
