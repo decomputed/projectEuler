@@ -2,7 +2,6 @@ package com.decomputed;
 
 import org.junit.Test;
 
-import static java.lang.Math.sqrt;
 import static java.util.stream.LongStream.rangeClosed;
 import static org.junit.Assert.assertEquals;
 
@@ -25,7 +24,7 @@ public class Problem0002Test {
         assertEquals(
                 rangeClosed(1, 4000000)
                         .filter(n -> n % 2 == 0)
-                        .filter(Fibonacci::isFibonacciNumber)
+                        .filter(Euler::isFibonacciNumber)
                         .sum(),
                 4613732);
     }

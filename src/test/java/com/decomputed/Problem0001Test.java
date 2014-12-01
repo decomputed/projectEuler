@@ -3,7 +3,7 @@ package com.decomputed;
 
 import org.junit.Test;
 
-import static com.decomputed.Number.isMultipleOf;
+import static com.decomputed.Euler.isMultipleOf;
 import static java.util.stream.IntStream.range;
 import static org.junit.Assert.assertEquals;
 
@@ -15,11 +15,11 @@ import static org.junit.Assert.assertEquals;
 public class Problem0001Test {
 
     @Test
-    public void testConfirmation() {
+    public void rangeTest() {
 
         assertEquals(
                 range(1, 1000)
-                        .filter(n -> isMultipleOf(n, 3) || isMultipleOf(n, 5))
+                        .filter(n -> isMultipleOf.test(n, 3) || isMultipleOf.test(n, 5))
                         .sum(),
                 233168);
     }
