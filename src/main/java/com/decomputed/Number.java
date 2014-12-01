@@ -1,6 +1,5 @@
 package com.decomputed;
 
-import static java.lang.Math.abs;
 
 public class Number  {
 
@@ -19,6 +18,6 @@ public class Number  {
      */
     public static boolean isMultipleOf(int multiple, int divisor) {
 
-        return (multiple % divisor == 0) && (abs(multiple) >= abs(multiple));
+        return (multiple % divisor == 0);
     }
 }
