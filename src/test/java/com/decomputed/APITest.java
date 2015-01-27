@@ -3,7 +3,11 @@ package com.decomputed;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import static java.lang.Long.MAX_VALUE;
 import static org.junit.Assert.assertFalse;
@@ -50,6 +54,28 @@ public class APITest {
         assertTrue(factors.contains(7L));
         assertTrue(factors.contains(13L));
         assertTrue(factors.contains(29L));
+    }
+
+    @Test
+    public void testSundaramsSieve() {
+
+        long limit = Integer.MAX_VALUE;
+
+        System.out.println("Starting...");
+        HashSet<Double> sundaramSieve = Prime.generateSieve(limit);
+
+        System.out.println("Sieve complete:" + sundaramSieve.size());
+
+        Set<Long> primes = LongStream
+                .range(1, limit)
+                .boxed()
+                .filter(number -> !sundaramSieve.contains(number.doubleValue()))
+                .map(number -> (2 * number) + 1)
+                .collect(Collectors.toSet());
+
+        primes.add(2L);
+
+        System.out.println("primes generated between 1 and " + limit * 2 + " :: " + primes.size());
     }
 
     @Ignore
