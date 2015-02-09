@@ -1,11 +1,36 @@
 module Problem007 where
 
+import Data.List
+
+--
+-- Trial and division
+-- yaaaaaaaaaaaaaaaaay
+--
+
+
+isPrime :: Integral a => a -> Bool
+isPrime n | n == 2		 = True
+	  | n < 2 || even n    	 = False
+	  | otherwise 	  	 = not (any (\i -> n `mod` i == 0) [3..n-1])
+
+trialAndDivision limit = [n | n <- [2..limit], isPrime n]
+
+
+----------------------
+
+isPrime2 :: Integral a => a -> Bool
+isPrime2 n | n == 2		 = True
+	  | otherwise 	  	 = not (any (\i -> n `mod` i == 0) [3..n-1])
+
+trialAndDivision2 limit = 2:3:5:[n | n <- [7,9..limit], isPrime2 n]
+
+
 --
 -- Sieves
 -- Contains implementations of several sieves
 --
 
-import Data.List
+
 
 {------------------------------------------------
 
@@ -53,7 +78,7 @@ Running time for erastothenes3 100000 --> 77.94 secs
 
 -------------------------------------------------}
 
-erastothenes3 limit = eSieve3 [5,7..limit] [3,2]
+erastothenes3 limit = eSieve3 [3,5..limit] [2]
 
 eSieve3 [] primes = primes
 eSieve3 (x:xs) primes = eSieve3
@@ -61,29 +86,6 @@ eSieve3 (x:xs) primes = eSieve3
 			(x:primes)
 
 {------------------------------------------------
-
-Now that was unexpetected. I was expecting that by doing operations only on half of the original numbers, the total running time would decrease to at least half..
-
-Running time for erastothenes3 100000 --> 77.94 secs
-
-So maybe this is due to running the code from ghci instead of compiling it. And indeed, after compilation:
-
-erastothenes2 100000 ---> 11.9 s
-erastothenes3 100000 ---> 11.4 s
-
-Only 500 miliseconds faster. On the other hand, it's a speed gain of almost 6 times versus executing it on GHCI!! So let's try with a bigger number:
-
-erastothenes2 1000000 ---> 31m53s
-erastothenes3 1000000 ---> 21m37s
-
-So my hypothesis was correct then! It did not improve by half but by one third.
-
--------------------------------------------------}
-
-{------------------------------------------------
-
-Ok, so now let's try the same thing with the Sundaram Sieve. This one is prone to more optimization but let's start with the first version
-
 -------------------------------------------------}
 
 sundaram1 limit = let limit' = (limit `div` 2) in
@@ -91,11 +93,6 @@ sundaram1 limit = let limit' = (limit `div` 2) in
 	       	     	  ([1..limit'] \\ [i + j + 2*i*j | i <- [1..limit'], j <- [i..limit']]))
 
 {------------------------------------------------
-
-sundaram1 1000 ---> 9.59 secs and it is absurdly slow.
-
-So, there's a few things I don't like in this version, chief amongst them the fact that I used \\ to do something like a set operation on the sieve but instead of that, I think I can use list comprehensions which should decrease the amount of operations. 
-
 -------------------------------------------------}
 
 sundaram2 limit = let limit' = (limit `div` 2) in
@@ -104,26 +101,15 @@ sundaram2 limit = let limit' = (limit `div` 2) in
 				     	       	      	      	j <- [i..limit']])]
 
 {------------------------------------------------
-
-sundaram2 1000 ---> 31.81 secs.
-
-So, it turns out that this solution made it even worse. So, what if we create a lexical scope around the actual sieve?
-
 -------------------------------------------------}
 
-sundaram3 limit = let limit' = (limit `div` 2) in
-	  	      let sieve = [i + j + 2*i*j | i <- [1..limit'],
-				     	       	   j <- [i..limit']] in
-	  	      2:[2*n+1 | n <- [1..limit'],
-		      	       	 not (n `elem` sieve)]
+sundaram3 limit = let limit' = (limit `div` 2) 
+	  	      sieve = [i + j + 2*i*j | i <- [1..limit'],
+				     	       j <- [i..limit']] in
+	  	  2:[2*n+1 | n <- [1..limit'],
+		      	     not (n `elem` sieve)]
 
 {------------------------------------------------
-
-sundaram3 1000 ---> 0.56 secs.
-sundaram3 10000 ---> 258.91 secs.
-
-It is a lot better for 1000 but still very very bad for 10000. So let's use some math to optimize the limits we should go to, to avoid calculating too many numbers in the sieve. This optimization was taken from [stackoverflow](http://stackoverflow.com/a/16246829).
-
 -------------------------------------------------}
 
 sundaram4 :: Int -> [Int]
@@ -135,14 +121,110 @@ sundaram4 limit = let limit' = (limit `div` 2) in
 	  	  2:[2*n+1 | n <- [1..limit'],
 		      	     not (n `elem` sieve)]
 
+{------------------------------------------------
+-------------------------------------------------}
 
+initialSundaramSieve limit = let topi = floor (sqrt ((fromIntegral limit) / 2)) in
+	  	             [i + j + 2*i*j | i <- [1..topi],
+                           		      j <- [i..floor((fromIntegral(limit-i)) / fromIntegral(2*i+1))]]
+
+sundaram5 limit = let halfLimit = (limit `div` 2) in
+	  	      2:removeComposites ([1..halfLimit]) (sort $ initialSundaramSieve halfLimit) 
+
+removeComposites []     _                  = []
+removeComposites sieve  []                 = sieve
+removeComposites (s:ss) (c:cs) | s == c    = removeComposites ss cs
+		 	       | s > c     = removeComposites (s:ss) cs
+			       | otherwise = 2*s+1 : (removeComposites ss (c:cs))
 
 {--------------------------------------------------
 
 So now we get 0.40 secs for sundaram4 10000 and 38.16 seconds for sundaram4 100000.
 
-After compilation and running with 1000000 we get:
-
-
+So now let's try to do the Atkin Sieve, which is a bit like the Erastothenes Sieve, but with more math!
 
 ----------------------------------------------------}
+
+--initialAtkinSieve limit = zip [2..limit] (take limit [0,0..])
+initialAtkinSieve limit = sort $ zip
+				  [60 * w + x | w <- [0..limit `div` 60],
+				      	        x <- [1,7,11,13,17,19,23,29,31,37,41,43,47,49,53,59]]
+				  (take limit [0,0..])
+
+aFlip :: (x,Int) -> (x,Int)
+aFlip (x,1) = (x,0)
+aFlip (x,0) = (x,1)
+
+
+flipAll :: [Int] -> [(Int, Int)] -> [(Int, Int)]
+flipAll _      []     = []
+flipAll []     ss     = ss
+flipAll (f:fs) ((s,b):ss) = if s < f
+	       	      	then (s,b): (flipAll (f:fs) ss)
+			else if s == f
+			     then flipAll fs ((aFlip (s,b)):ss)
+			     else flipAll fs ((s,b):ss)
+
+
+firstStep sieve = let size = (fst $ last sieve)
+	  	      topx = floor(sqrt(fromIntegral (size `div` 4)))
+		      topy = floor(sqrt(fromIntegral size)) in
+	  	  flipAll (sort [n | n <- [4*x^2 + y^2| x <- [1..topx],
+		  	  	       	  	   	y <- [1,3..topy]],
+							n `mod` 60 `elem` [1,13,17,29,37,41,49,53]])
+                          sieve
+
+
+secondStep sieve = let size = (fst $ last sieve)
+	   	       topx = floor(sqrt(fromIntegral (size `div` 3)))
+		       topy = floor(sqrt(fromIntegral size)) in
+                     flipAll (sort [n | n <- [3*x^2 + y^2
+                                           | x <- [1,3..topx],
+                                             y <- [2,4..topy]],
+					     n `mod` 60 `elem` [7,19,31,43]])
+                           sieve
+
+
+thirdStep sieve = let size = (fst $ last sieve)
+	  	      topx = floor(sqrt(fromIntegral size)) in
+                    flipAll (sort [n | n <- [3*x^2 - y^2
+		                                | x <- [1..topx],
+                                                  y <- [(x-1),(x-3)..1],
+						  x>y],
+						  n `mod` 60 `elem` [11,23,47,59]])
+                           sieve
+
+reduceList _      []         = []
+reduceList number ((x,b):xs) = if   x >= number && x `mod` number == 0
+	   	  	       then (x,0) : (reduceList number xs)
+			       else (x,b) : (reduceList number xs)
+
+
+reduceListAndUnmark candidate sieve = let limit = (fst $ last sieve) in
+		    	      	      unmarkAll [candidate * m | m <-[1,7,11,13,17,19,23,29,31,37,41,43,47,49,53,59],
+                                                                candidate * m <= limit]
+						sieve
+
+
+unmarkAll _        []         = []
+unmarkAll []       sieve      = sieve
+unmarkAll (np:nps) ((s,b):ss) = if np == s
+	  	   	      	then (unmarkAll nps ((s,0):ss))
+				else if   np < s
+				     then unmarkAll nps ((s,b):ss)
+				     else (s,b) : (unmarkAll (np:nps) ss)
+
+
+atkin1 limit = aSieve2 (thirdStep . secondStep . firstStep $ initialAtkinSieve limit) [(5,1),(3,1),(2,1)]
+
+aSieve2 []         primes = primes
+aSieve2 ((x,b):xs) primes = if   b == 1
+		   	    then aSieve2 (reduceListAndUnmark (x^2) xs) ((x,b): primes)
+			    else aSieve2 xs                             primes
+
+
+aSieve1 []         primes = primes
+aSieve1 ((x,b):xs) primes = if   b == 1
+		   	    then aSieve1 (reduceList (x^2) xs) ((x,b): primes)
+			    else aSieve1 xs                    primes
+
