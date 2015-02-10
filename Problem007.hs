@@ -200,3 +200,24 @@ unmarkWithWheel candidate sieve = let limit = (fst $ last sieve) in
                                                                 candidate * m <= limit]
 						sieve
 
+---------------------------- version 2
+
+step1 size = let topx = floor(sqrt(fromIntegral (size `div` 4)))
+		 topy = floor(sqrt(fromIntegral size)) in
+	     [n | n <- [4*x^2 + y^2 | x <- [1..topx],
+		  	  	       y <- [1,3..topy]],
+                        n `mod` 60 `elem` [1,13,17,29,37,41,49,53]]
+
+
+step2 size = let topx = floor(sqrt(fromIntegral (size `div` 3)))
+		 topy = floor(sqrt(fromIntegral size)) in
+             [n | n <- [3*x^2 + y^2 | x <- [1,3..topx],
+                                       y <- [2,4..topy]],
+		        n `mod` 60 `elem` [7,19,31,43]]
+
+step3 size = let topx = floor(sqrt(fromIntegral size)) in
+             [n | n <- [3*x^2 - y^2 | x <- [1..topx],
+                                       y <- [(x-1),(x-3)..1],
+				       x > y],
+		        n `mod` 60 `elem` [11,23,47,59]]
+
