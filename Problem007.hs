@@ -33,13 +33,6 @@ trialAndDivision2 limit = 2:3:5:[n | n <- [7,9..limit], isPrime2 n]
 
 
 {------------------------------------------------
-
-The first implementation was very naive, and only meant to see how long would a typical calculation take. It also was direct copy of what the definition on wikipedia says:
-
-"...enumerate its multiples by counting to n in increments of p, and mark them in the list..." So, even though this enumeration is just a test for a number being a multiple of another, I went with an implementation which really got created a list with those multiples.
-
-Total running time for erastothenes1 100000 --> 248.81 secs
-
 -------------------------------------------------}
 
 erastothenes1 limit = eSieve1 [2..limit] []
@@ -53,11 +46,6 @@ isMultiple :: Int -> Int -> Bool
 isMultiple n = \x -> elem n [x,x+x..n]
 
 {------------------------------------------------
-
-Now, it is obvious that the function isMultiple is not really needed - instead I can simply verify that the remainder of the division is 0 and if so, the number is a multiple.
-
-Total running time for erastothenes2 100000 --> 66.67 secs, which is about 4 times faster, mainly by avoiding the creation of so many lists. Which is rather obvious.
-
 -------------------------------------------------}
 
 erastothenes2 limit = eSieve2 [2..limit] []
@@ -68,14 +56,6 @@ eSieve2 (x:xs) primes = eSieve2
 			(primes++[x])
 
 {------------------------------------------------
-
-Let's do some final improvements:
-
-- I have understood that cons on lists is faster than list concatenation, so let's do that replacement
-- We don't really need to consider even numbers in the original list since we know they'll never be prime except for 2
-
-Running time for erastothenes3 100000 --> 77.94 secs
-
 -------------------------------------------------}
 
 erastothenes3 limit = eSieve3 [3,5..limit] [2]
@@ -128,28 +108,24 @@ initialSundaramSieve limit = let topi = floor (sqrt ((fromIntegral limit) / 2)) 
 	  	             [i + j + 2*i*j | i <- [1..topi],
                            		      j <- [i..floor((fromIntegral(limit-i)) / fromIntegral(2*i+1))]]
 
-sundaram5 limit = let halfLimit = (limit `div` 2) in
+sundaram5 limit = let halfLimit = floor((limit / 2)-1) in
 	  	      2:removeComposites ([1..halfLimit]) (sort $ initialSundaramSieve halfLimit) 
 
 removeComposites []     _                  = []
-removeComposites sieve  []                 = sieve
-removeComposites (s:ss) (c:cs) | s == c    = removeComposites ss cs
-		 	       | s > c     = removeComposites (s:ss) cs
-			       | otherwise = 2*s+1 : (removeComposites ss (c:cs))
+removeComposites (n:ns) []                 = (2*n+1) : (removeComposites ns [])
+removeComposites (n:ns) (c:cs) | n == c    = removeComposites ns cs
+		 	       | n > c     = removeComposites (n:ns) cs
+			       | otherwise = (2*n+1) : (removeComposites ns (c:cs))
 
 {--------------------------------------------------
-
-So now we get 0.40 secs for sundaram4 10000 and 38.16 seconds for sundaram4 100000.
-
-So now let's try to do the Atkin Sieve, which is a bit like the Erastothenes Sieve, but with more math!
-
 ----------------------------------------------------}
 
---initialAtkinSieve limit = zip [2..limit] (take limit [0,0..])
 initialAtkinSieve limit = sort $ zip
-				  [60 * w + x | w <- [0..limit `div` 60],
-				      	        x <- [1,7,11,13,17,19,23,29,31,37,41,43,47,49,53,59]]
+				  [n | n <- [60 * w + x | w <- [0..limit `div` 60],
+				      	                  x <- [1,7,11,13,17,19,23,29,31,37,41,43,47,49,53,59]],
+					    n <= limit]							
 				  (take limit [0,0..])
+
 
 aFlip :: (x,Int) -> (x,Int)
 aFlip (x,1) = (x,0)
@@ -194,16 +170,11 @@ thirdStep sieve = let size = (fst $ last sieve)
 						  n `mod` 60 `elem` [11,23,47,59]])
                            sieve
 
-reduceList _      []         = []
-reduceList number ((x,b):xs) = if   x >= number && x `mod` number == 0
-	   	  	       then (x,0) : (reduceList number xs)
-			       else (x,b) : (reduceList number xs)
 
 
-reduceListAndUnmark candidate sieve = let limit = (fst $ last sieve) in
-		    	      	      unmarkAll [candidate * m | m <-[1,7,11,13,17,19,23,29,31,37,41,43,47,49,53,59],
-                                                                candidate * m <= limit]
-						sieve
+unmarkMultiples n sieve =
+    let limit = (fst $ last sieve) in
+        unmarkAll [n | n <-[n,n+n..limit]] sieve
 
 
 unmarkAll _        []         = []
@@ -215,16 +186,17 @@ unmarkAll (np:nps) ((s,b):ss) = if np == s
 				     else (s,b) : (unmarkAll (np:nps) ss)
 
 
-atkin1 limit = aSieve2 (thirdStep . secondStep . firstStep $ initialAtkinSieve limit) [(5,1),(3,1),(2,1)]
-
-aSieve2 []         primes = primes
-aSieve2 ((x,b):xs) primes = if   b == 1
-		   	    then aSieve2 (reduceListAndUnmark (x^2) xs) ((x,b): primes)
-			    else aSieve2 xs                             primes
-
+atkin1 limit = aSieve1 (thirdStep . secondStep . firstStep $ initialAtkinSieve limit) [(5,1),(3,1),(2,1)]
 
 aSieve1 []         primes = primes
 aSieve1 ((x,b):xs) primes = if   b == 1
-		   	    then aSieve1 (reduceList (x^2) xs) ((x,b): primes)
-			    else aSieve1 xs                    primes
+		   	    then aSieve1 (unmarkMultiples (x^2) xs) ((x,b): primes)
+			    else aSieve1 xs                             primes
+
+
+-- incomplete
+unmarkWithWheel candidate sieve = let limit = (fst $ last sieve) in
+		    	      	      unmarkAll [candidate * m | m <-[1,7,11,13,17,19,23,29,31,37,41,43,47,49,53,59],
+                                                                candidate * m <= limit]
+						sieve
 

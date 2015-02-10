@@ -205,8 +205,9 @@ The Sieve of Atkin has a lot more steps and follows a somewhat different logic. 
 So I created a few more helper functions and this is the result:
 
 initialAtkinSieve limit = sort $ zip
-				  [60 * w + x | w <- [0..limit `div` 60],
-				      	        x <- [1,7,11,13,17,19,23,29,31,37,41,43,47,49,53,59]]
+				  [n | n <- [60 * w + x | w <- [0..limit `div` 60],
+				      	                  x <- [1,7,11,13,17,19,23,29,31,37,41,43,47,49,53,59]],
+					    n <= limit]							
 				  (take limit [0,0..])
 
 aFlip :: (x,Int) -> (x,Int)
@@ -253,10 +254,9 @@ thirdStep sieve = let size = (fst $ last sieve)
                            sieve
 
 
-reduceListAndUnmark candidate sieve = let limit = (fst $ last sieve) in
-		    	      	      unmarkAll [candidate * m | m <-[1,7,11,13,17,19,23,29,31,37,41,43,47,49,53,59],
-                                                                candidate * m <= limit]
-						sieve
+unmarkMultiples n sieve =
+    let limit = (fst $ last sieve) in
+        unmarkAll [n | n <-[n,n+n..limit]] sieve
 
 
 unmarkAll _        []         = []
@@ -272,17 +272,23 @@ atkin1 limit = aSieve1 (thirdStep . secondStep . firstStep $ initialAtkinSieve l
 
 aSieve1 []         primes = primes
 aSieve1 ((x,b):xs) primes = if   b == 1
-		   	    then aSieve1 (reduceListAndUnmark (x^2) xs) ((x,b): primes)
+		   	    then aSieve1 (unmarkMultiples (x^2) xs) ((x,b): primes)
 			    else aSieve1 xs                             primes
 
 So let's see:
 
-atkin1 1000 = 0.00s user 0.00s system 25% cpu 0.023 total
-atkin1 10000 = 0.02s user 0.00s system 52% cpu 0.036 total
-atkin1 100000 = 0.55s user 0.01s system 96% cpu 0.578 total
+atkin1 1000 = 0.00s user 0.00s system 25% cpu 0.021 total
+atkin1 10000 = 0.01s user 0.00s system 48% cpu 0.034 total
+atkin1 100000 = 0.58s user 0.01s system 96% cpu 0.605 total
 
 And for the big one:
 
-atkin1 1000000 = 47.80s user 0.41s system 99% cpu 48.456 total
+atkin1 1000000 = 42.98s user 0.32s system 99% cpu 43.455 total
 
-So that performance, though it's really nice overall, it sucks when compared to the sieve of Sundaram. However, there is another problem - for primes below 1 million, Atkin gives me 84955 - that's more than 6000 composite numbers in excess.
+So that performance, although it's really nice overall, it sucks when compared to the sieve of Sundaram. So let's try to do some improvements.
+
+One thing I don't like is the fact that I have to compose three functions to flip the prime status of the inital list of primes. I would prefer to do this operation in one go by concatenating the lists into one, sorting it once and in one passage flip all the primes.
+
+So let's try that then.
+
+

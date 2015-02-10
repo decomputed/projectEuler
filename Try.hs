@@ -2,4 +2,4 @@
 
 import Problem007
 
-main = print . length $ erastothenes3 1000000
+main = print . length $ atkin1 1000000
