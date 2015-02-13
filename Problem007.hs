@@ -135,89 +135,64 @@ aFlip (x,0) = (x,1)
 flipAll :: [Int] -> [(Int, Int)] -> [(Int, Int)]
 flipAll _      []     = []
 flipAll []     ss     = ss
-flipAll (f:fs) ((s,b):ss) = if s < f
-	       	      	then (s,b): (flipAll (f:fs) ss)
-			else if s == f
-			     then flipAll fs ((aFlip (s,b)):ss)
-			     else flipAll fs ((s,b):ss)
+flipAll (f:fs) ((s,b):ss) 
+	| s < f		  = (s,b): (flipAll (f:fs) ss)
+	| s == f	  = flipAll fs ((aFlip (s,b)):ss)
+	| otherwise	  = flipAll fs ((s,b):ss)
 
 
-firstStep sieve = let size = (fst $ last sieve)
-	  	      topx = floor(sqrt(fromIntegral (size `div` 4)))
-		      topy = floor(sqrt(fromIntegral size)) in
-	  	  flipAll (sort [n | n <- [4*x^2 + y^2| x <- [1..topx],
-		  	  	       	  	   	y <- [1,3..topy]],
-							n `mod` 60 `elem` [1,13,17,29,37,41,49,53]])
-                          sieve
+firstStep size sieve =
+	  let topx = floor(sqrt(fromIntegral (size `div` 4)))
+	      topy = floor(sqrt(fromIntegral size)) in
+	  flipAll (sort [n | n <- [4*x^2 + y^2| x <- [1..topx],
+		  	  	       	  	y <- [1,3..topy]],
+			     n `mod` 60 `elem` [1,13,17,29,37,41,49,53]])
+                   sieve
 
 
-secondStep sieve = let size = (fst $ last sieve)
-	   	       topx = floor(sqrt(fromIntegral (size `div` 3)))
-		       topy = floor(sqrt(fromIntegral size)) in
-                     flipAll (sort [n | n <- [3*x^2 + y^2
-                                           | x <- [1,3..topx],
-                                             y <- [2,4..topy]],
-					     n `mod` 60 `elem` [7,19,31,43]])
-                           sieve
+secondStep size sieve =
+	   let topx = floor(sqrt(fromIntegral (size `div` 3)))
+	       topy = floor(sqrt(fromIntegral size)) in
+           flipAll (sort [n | n <- [3*x^2 + y^2 | x <- [1,3..topx],
+                                                  y <- [2,4..topy]],
+		              n `mod` 60 `elem` [7,19,31,43]])
+                    sieve
 
 
-thirdStep sieve = let size = (fst $ last sieve)
-	  	      topx = floor(sqrt(fromIntegral size)) in
-                    flipAll (sort [n | n <- [3*x^2 - y^2
-		                                | x <- [1..topx],
-                                                  y <- [(x-1),(x-3)..1],
-						  x>y],
-						  n `mod` 60 `elem` [11,23,47,59]])
-                           sieve
+thirdStep size sieve =
+	  let topx = floor(sqrt(fromIntegral size)) in
+          flipAll (sort [n | n <- [3*x^2 - y^2 | x <- [1..topx],
+                                                 y <- [(x-1),(x-3)..1],
+						 x > y],
+			     n `mod` 60 `elem` [11,23,47,59]])
+                  sieve
 
 
-
-unmarkMultiples n sieve =
-    let limit = (fst $ last sieve) in
-        unmarkAll [n | n <-[n,n+n..limit]] sieve
+unmarkMultiples limit n sieve =
+    		let nonPrimes = [y | y <-[n,n+n..limit]] in
+    		unmarkAll nonPrimes sieve
 
 
 unmarkAll _        []         = []
 unmarkAll []       sieve      = sieve
-unmarkAll (np:nps) ((s,b):ss) = if np == s
-	  	   	      	then (unmarkAll nps ((s,0):ss))
-				else if   np < s
-				     then unmarkAll nps ((s,b):ss)
-				     else (s,b) : (unmarkAll (np:nps) ss)
+unmarkAll (np:nps) ((s,b):ss) 
+	  | np == s	     = unmarkAll nps ss
+	  | np < s	     = unmarkAll nps ((s,b):ss)
+	  | otherwise	     = (s,b) : (unmarkAll (np:nps) ss)
 
 
-atkin1 limit = aSieve1 (thirdStep . secondStep . firstStep $ initialAtkinSieve limit) [(5,1),(3,1),(2,1)]
-
-aSieve1 []         primes = primes
-aSieve1 ((x,b):xs) primes = if   b == 1
-		   	    then aSieve1 (unmarkMultiples (x^2) xs) ((x,b): primes)
-			    else aSieve1 xs                             primes
-
-
--- incomplete
-unmarkWithWheel candidate sieve = let limit = (fst $ last sieve) in
-		    	      	      unmarkAll [candidate * m | m <-[1,7,11,13,17,19,23,29,31,37,41,43,47,49,53,59],
-                                                                candidate * m <= limit]
-						sieve
-
----------------------------- version 2
-
-step1 size = let topx = floor(sqrt(fromIntegral (size `div` 4)))
-		 topy = floor(sqrt(fromIntegral size)) in
-	     [n | n <- [4*x^2 + y^2 | x <- [1..topx],
-		  	  	       y <- [1,3..topy]],
-                        n `mod` 60 `elem` [1,13,17,29,37,41,49,53]]
+atkin1 limit =
+       aSieve1 limit
+       	       ((thirdStep limit) .
+	        (secondStep limit) .
+		(firstStep limit) $
+		initialAtkinSieve limit)
+	       [(5,1),(3,1),(2,1)]
 
 
-step2 size = let topx = floor(sqrt(fromIntegral (size `div` 3)))
-		 topy = floor(sqrt(fromIntegral size)) in
-             [n | n <- [3*x^2 + y^2 | x <- [1,3..topx],
-                                       y <- [2,4..topy]],
-		        n `mod` 60 `elem` [7,19,31,43]]
+aSieve1 _     []         primes = primes
+aSieve1 limit ((x,b):xs) primes
+	       | b == 1		= aSieve1 limit (unmarkMultiples limit (x^2) xs) ((x,b): primes)
+	       | otherwise	= aSieve1 limit xs primes
 
-step3 size = let topx = floor(sqrt(fromIntegral size)) in
-             [n | n <- [3*x^2 - y^2 | x <- [1..topx],
-                                       y <- [(x-1),(x-3)..1],
-				       x > y],
-		        n `mod` 60 `elem` [11,23,47,59]]
 
