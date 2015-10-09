@@ -1,4 +1,4 @@
-(defproject project-euler "0.1.0-SNAPSHOT"
+(defproject project-euler "0.1.0"
   :description "Solutions for Project Euler in Clojure"
   :url "https://github.com/decomputed/projectEuler/tree/Clojure"
   :license {:name "MIT"
