@@ -1,7 +1,3 @@
-
-.idea
-*.iml
-target
+.stack-work/
 *~
-*.hi
-*.o
+stack.yaml.lock
