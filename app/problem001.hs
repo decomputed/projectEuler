@@ -2,6 +2,13 @@
 -- Multiples of 3 and 5
 --
 
+module Problem001
+    ( multiple
+    , multipleOf
+    , sumNaturals
+    ) where
+
+
 multiple :: Int -> Int -> Bool
 multiple number factor = (number `mod` factor) == 0
 
