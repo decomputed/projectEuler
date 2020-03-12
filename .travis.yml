@@ -3,13 +3,13 @@ sudo: false
 # Build environment
 dist: bionic
 
-# It's actualy Haskell...
-language: generic
+# Small image
+language: c
 
 # Caching so the next build will be fast too.
-cache:
-  directories:
-  - $HOME/.stack
+#cache:
+#  directories:
+#  - $HOME/.stack
 
 # Ensure necessary system libraries are present
 addons:
@@ -22,12 +22,11 @@ before_install:
 - mkdir -p ~/.local/bin
 - export PATH=$HOME/.local/bin:$PATH
 - travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+- stack --no-terminal setup
 
 # Build dependencies
-install:
-- stack --no-terminal setup
+#install:
 
 # Build the package, its tests, and its docs and run the tests
 script:
-- stack --no-terminal build
-- stack --no-terminal test
+- stack --no-terminal --install-ghc test
