@@ -5,9 +5,9 @@ dist: bionic
 language: generic
 
 # Caching so the next build will be fast too.
-cache:
-  directories:
-  - $HOME/.stack
+#cache:
+#  directories:
+#  - $HOME/.stack
 
 # Ensure necessary system libraries are present
 addons:
@@ -22,8 +22,8 @@ before_install:
 - travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
 # Build dependencies
-#install:
-#- stack --no-terminal --install-ghc test --only-dependencies
+install:
+- stack --no-terminal setup
 
 # Build the package, its tests, and its docs and run the tests
 script:
