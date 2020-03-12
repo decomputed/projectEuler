@@ -1,3 +1,5 @@
+sudo: false
+
 # Build environment
 dist: bionic
 
@@ -5,9 +7,9 @@ dist: bionic
 language: generic
 
 # Caching so the next build will be fast too.
-#cache:
-#  directories:
-#  - $HOME/.stack
+cache:
+  directories:
+  - $HOME/.stack
 
 # Ensure necessary system libraries are present
 addons:
