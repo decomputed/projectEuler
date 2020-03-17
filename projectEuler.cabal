@@ -1,63 +1,19 @@
-cabal-version: 1.12
-
--- This file has been generated from package.yaml by hpack version 0.31.2.
---
--- see: https://github.com/sol/hpack
---
--- hash: 166de9bb42eacc8bf46cd05f57b6d36ceee1481abdbff7a368c5920978aa2e58
+cabal-version: 3.0
 
 name:           projectEuler
 version:        0.1.0.0
-homepage:       https://github.com/githubuser/projectEuler#readme
-bug-reports:    https://github.com/githubuser/projectEuler/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2020 Author name here
-license:        BSD3
-build-type:     Simple
-extra-source-files:
-    README.md
-    ChangeLog.md
-
-source-repository head
-  type: git
-  location: https://github.com/githubuser/projectEuler
 
 library
-  exposed-modules:
-      Main
-      Problem001
-  other-modules:
-      Paths_projectEuler
-  hs-source-dirs:
-      app
-  build-depends:
-      base >=4.7 && <5
+  build-depends: base
   default-language: Haskell2010
+  hs-source-dirs: app
+  exposed-modules: Problem001
 
-executable projectEuler-exe
-  main-is: Main.hs
-  other-modules:
-      Problem001
-      Paths_projectEuler
-  hs-source-dirs:
-      app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , projectEuler
+test-suite unit
+  build-depends: base, hspec, projectEuler
   default-language: Haskell2010
-
-test-suite projectEuler-test
-  type: exitcode-stdio-1.0
+  hs-source-dirs: test
   main-is: Spec.hs
-  other-modules:
-      Paths_projectEuler
-  hs-source-dirs:
-      test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , hspec
-    , projectEuler
-  default-language: Haskell2010
+  type: exitcode-stdio-1.0
+
+
