@@ -1,5 +1,5 @@
 import Test.Hspec
-import Problem001
+import Lib
 
 main :: IO ()
 main = hspec $ do
