@@ -1,32 +1,19 @@
-sudo: false
-
 # Build environment
 dist: bionic
 
 # Small image
-language: c
-
-# Caching so the next build will be fast too.
-#cache:
-#  directories:
-#  - $HOME/.stack
-
-# Ensure necessary system libraries are present
-addons:
-  apt:
-    packages:
-      - libgmp-dev
+language: minimal
 
 # Download and unpack the stack executable
 before_install:
-- mkdir -p ~/.local/bin
-- export PATH=$HOME/.local/bin:$PATH
-- travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
-- stack --no-terminal setup
-
-# Build dependencies
-#install:
+- ( mkdir -p ~/.ghcup/bin && curl https://gitlab.haskell.org/haskell/ghcup/raw/master/ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup) && echo "Installed ghcup"
+- export PATH="$HOME/.cabal/bin:$HOME/.ghcup/bin:$PATH"
+- ghcup -c install-cabal
+- ghcup -c install 8.6.5
+- ghcup -c set 8.6.5
+- ghc --version
+- cabal --version
 
 # Build the package, its tests, and its docs and run the tests
 script:
-- stack --no-terminal --install-ghc test
+- cabal test
