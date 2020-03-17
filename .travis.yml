@@ -13,7 +13,8 @@ before_install:
 - ghcup -c set 8.6.5
 - ghc --version
 - cabal --version
-
+- cabal user-config update -a "tests: True"
+  
 # Build the package, its tests, and its docs and run the tests
 script:
 - cabal test
